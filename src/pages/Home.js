@@ -1,13 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { getCategories } from '../services/api';
+import { getCategories, productApi } from '../services/api';
+import Card from '../componets/Card';
 
 export default class Home extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       categories: [],
       selectedCategory: '',
+      productName: '',
+      resultAPIProduct: [],
+      search: false,
     };
   }
 
@@ -16,8 +20,25 @@ export default class Home extends React.Component {
     this.setState((prevState) => ({ ...prevState, categories }));
   }
 
+  nameProduct = ({ target }) => {
+    const { value } = target;
+    this.setState({
+      productName: value,
+    });
+  }
+
+  acessarAPI = async () => {
+    const { productName } = this.state;
+    const resultadoAPI = await productApi(productName);
+    const { results } = resultadoAPI;
+    this.setState({
+      resultAPIProduct: results,
+      search: true,
+    });
+  }
+
   render() {
-    const { categories } = this.state;
+    const { categories, productName, resultAPIProduct, search } = this.state;
     return (
       <div>
         <Link to="/cart" data-testid="shopping-cart-button">Carrinho</Link>
@@ -26,12 +47,40 @@ export default class Home extends React.Component {
         </p>
         <aside>
           { categories.map(({ name, id }) => (
-            <label htmlFor={ name + id } key={ name } data-testid="category">
-              <input type="radio" value={ id } id={ name + id } name="selectedCategory" />
+            <label htmlFor={ `${name}${id}` } key={ name } data-testid="category">
+              <input
+                type="radio"
+                value={ id }
+                id={ `${name}${id}` }
+                name="selectedCategory"
+              />
               { name }
             </label>
           ))}
         </aside>
+        <label htmlFor="input-pesquisa">
+          <input
+            type="text"
+            data-testid="query-input"
+            name="input-pesquisa"
+            value={ productName }
+            onChange={ this.nameProduct }
+          />
+        </label>
+        <button type="submit" data-testid="query-button" onClick={ this.acessarAPI }>
+          Pesquisar
+        </button>
+        {
+          search && (resultAPIProduct.length > 0 ? (resultAPIProduct.map((elemento) => {
+            const { title } = elemento;
+            return (
+              <Card key={ title } product={ elemento } />
+            );
+          }))
+            : (
+              <h1>Nenhum produto foi encontrado</h1>
+            ))
+        }
       </div>
     );
   }
