@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { getCategories, productApi } from '../services/api';
+import { getCategories, productApi, getCategoriesId } from '../services/api';
 import Card from '../componets/Card';
 
 export default class Home extends React.Component {
@@ -12,6 +12,7 @@ export default class Home extends React.Component {
       productName: '',
       resultAPIProduct: [],
       search: false,
+      resultAPIcategory: [],
     };
   }
 
@@ -37,8 +38,21 @@ export default class Home extends React.Component {
     });
   }
 
+  selectCategory = async ({ target }) => {
+    const { value } = target;
+    const select = await getCategoriesId(value);
+    const { results } = select;
+    this.setState({
+      resultAPIcategory: results,
+    });
+  }
+
   render() {
-    const { categories, productName, resultAPIProduct, search } = this.state;
+    const { categories,
+      productName,
+      resultAPIProduct,
+      search,
+      resultAPIcategory } = this.state;
     return (
       <div>
         <Link to="/cart" data-testid="shopping-cart-button">Carrinho</Link>
@@ -53,6 +67,7 @@ export default class Home extends React.Component {
                 value={ id }
                 id={ `${name}${id}` }
                 name="selectedCategory"
+                onClick={ this.selectCategory }
               />
               { name }
             </label>
@@ -80,6 +95,14 @@ export default class Home extends React.Component {
             : (
               <h1>Nenhum produto foi encontrado</h1>
             ))
+        }
+        {
+          resultAPIcategory.length > 0 && (resultAPIcategory.map((element) => {
+            const { title } = element;
+            return (
+              <Card key={ title } product={ element } />
+            );
+          }))
         }
       </div>
     );
