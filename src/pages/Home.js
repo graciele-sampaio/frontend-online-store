@@ -13,20 +13,21 @@ export default class Home extends React.Component {
       resultAPIProduct: [],
       search: false,
       resultAPIcategory: [],
+      cart: [],
     };
   }
 
   componentDidMount = async () => {
     const categories = await getCategories();
     this.setState((prevState) => ({ ...prevState, categories }));
-  }
+  };
 
   nameProduct = ({ target }) => {
     const { value } = target;
     this.setState({
       productName: value,
     });
-  }
+  };
 
   acessarAPI = async () => {
     const { productName } = this.state;
@@ -36,7 +37,7 @@ export default class Home extends React.Component {
       resultAPIProduct: results,
       search: true,
     });
-  }
+  };
 
   selectCategory = async ({ target }) => {
     const { value } = target;
@@ -45,22 +46,49 @@ export default class Home extends React.Component {
     this.setState({
       resultAPIcategory: results,
     });
+  };
+
+  // handleClick = (id) => {
+  //   this.setState((prevState) => ({
+  //     cart: [...prevState.cart, id],
+  //   }), () => {
+  //     const { cart } = this.state;
+  //     localStorage.setItem('cart', JSON.stringify(cart));
+  //   });
+  // }
+
+  handleClick = (title, price) => {
+    const item = {
+      nome: title,
+      preco: price,
+    };
+
+    this.setState((prevState) => ({
+      cart: [...prevState.cart, item],
+    }), () => {
+      const { cart } = this.state;
+      localStorage.setItem('cart', JSON.stringify(cart));
+    });
   }
 
   render() {
-    const { categories,
+    const {
+      categories,
       productName,
       resultAPIProduct,
       search,
-      resultAPIcategory } = this.state;
+      resultAPIcategory,
+    } = this.state;
     return (
       <div>
-        <Link to="/cart" data-testid="shopping-cart-button">Carrinho</Link>
         <p data-testid="home-initial-message">
           Digite algum termo de pesquisa ou escolha uma categoria.
         </p>
+        <Link id="teste02" to="/cart" data-testid="shopping-cart-button">
+          Carrinho
+        </Link>
         <aside>
-          { categories.map(({ name, id }) => (
+          {categories.map(({ name, id }) => (
             <label htmlFor={ `${name}${id}` } key={ name } data-testid="category">
               <input
                 type="radio"
@@ -69,7 +97,7 @@ export default class Home extends React.Component {
                 name="selectedCategory"
                 onClick={ this.selectCategory }
               />
-              { name }
+              {name}
             </label>
           ))}
         </aside>
@@ -77,33 +105,31 @@ export default class Home extends React.Component {
           <input
             type="text"
             data-testid="query-input"
+            id="teste"
             name="input-pesquisa"
             value={ productName }
             onChange={ this.nameProduct }
           />
         </label>
-        <button type="submit" data-testid="query-button" onClick={ this.acessarAPI }>
+        <button
+          id="teste01"
+          type="submit"
+          data-testid="query-button"
+          onClick={ this.acessarAPI }
+        >
           Pesquisar
         </button>
-        {
-          search && (resultAPIProduct.length > 0 ? (resultAPIProduct.map((elemento) => {
-            const { title } = elemento;
-            return (
-              <Card key={ title } product={ elemento } />
-            );
-          }))
-            : (
-              <h1>Nenhum produto foi encontrado</h1>
-            ))
-        }
-        {
-          resultAPIcategory.length > 0 && (resultAPIcategory.map((element) => {
-            const { title } = element;
-            return (
-              <Card key={ title } product={ element } />
-            );
-          }))
-        }
+        {search && (resultAPIProduct.length > 0 ? (resultAPIProduct.map((elemento) => {
+          const { title } = elemento;
+          return <Card key={ title } product={ elemento } handleClick={ this.handleClick } />;
+        })
+        ) : (
+          <h1>Nenhum produto foi encontrado</h1>
+        ))}
+        {resultAPIcategory.length > 0 && resultAPIcategory.map((element) => {
+          const { title } = element;
+          return <Card key={ title } product={ element } handleClick={ this.handleClick } />;
+        })}
       </div>
     );
   }
